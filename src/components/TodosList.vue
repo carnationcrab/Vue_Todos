@@ -1,48 +1,52 @@
-<script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import TodosItem from './TodosItem.vue';
-import type { Todo } from '@/models/Todo';
+<template>
+  <div v-for="todo in todos" :key="todo.id" class="list">
+    <div class="item">
+      <div>
+        <span @click.stop="toggleComplete(todo.id)">
+          {{ todo.completed ? '&#10004;' : '&#x25A1;' }}
+        </span>
+        <span :class="{ completed: todo.completed }">{{ todo.text }}</span>
+        <span @click="deleteTodo(todo.id)" class="delete">&#10060;</span>
+      </div>
+    </div>
+  </div>
+</template>
+  
+<script lang="ts">
+import useTodoStore from "@/stores/TodoStore";
+import { storeToRefs } from "pinia";
 
-const todos = ref<Todo[]>([]);
-const newTodoText = ref<string>('');
+export default {
+  setup() {
+    const store = useTodoStore();
 
-onMounted(() => {
-    fetchTodos();
-});
+    const { todos } = storeToRefs(store);
+    const { toggleComplete, deleteTodo } = store;
 
-const fetchTodos = () => {
-    todos.value = [
-        { id: 1, text: 'Learn Vue.js', completed: true },
-        { id: 2, text: 'Build a CRUD app', completed: false },
-    ];
+    return { todos, toggleComplete, deleteTodo };
+  },
 };
 
-const addTodo = () => {
-    if (newTodoText.value.trim() !== '') {
-        const newTodo: Todo = {
-            id: todos.value.length + 1,
-            text: newTodoText.value,
-            completed: false,
-        };
-        todos.value.push(newTodo);
-        newTodoText.value = '';
-    }
-};
-
-const deleteTodo = (id: number) => {
-    todos.value = todos.value.filter(todo => todo.id !== id);
-};
 </script>
 
-<template>
-    <div>
-        <h1>Todo List</h1>
-        <div>
-            <input v-model="newTodoText" placeholder="Add a new todo" />
-            <button @click="addTodo">Add Todo</button>
-        </div>
-        <ul>
-            <todos-item v-for="todo in todos" :key="todo.id" :todo="todo" @delete="deleteTodo" />
-        </ul>
-    </div>
-</template>
+<style scoped>
+span {
+  margin: 0 10px;
+  cursor: pointer;
+}
+
+.completed {
+  text-decoration: line-through;
+}
+
+.list {
+  display: flex;
+  justify-content: center;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px;
+}
+</style>
